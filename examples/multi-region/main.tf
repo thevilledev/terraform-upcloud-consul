@@ -1,5 +1,5 @@
 module "consul-de-fra1" {
-    source = "git@github.com:vtorhonen/terraform-upcloud-consul.gi"
+    source = "git@github.com:vtorhonen/terraform-upcloud-consul.git"
     domain = "example.tld"
     zone = "de-fra1"
     login_user = local.login_user
@@ -22,7 +22,7 @@ EOF
 }
 
 module "consul-fi-hel1" {
-    source = "git@github.com:vtorhonen/terraform-upcloud-consul.gi"
+    source = "git@github.com:vtorhonen/terraform-upcloud-consul.git"
     domain = "example.tld"
     zone = "fi-hel1"
     login_user = local.login_user
