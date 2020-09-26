@@ -1,4 +1,4 @@
-# terraform-consul-upcloud
+# terraform-upcloud-consul
 
 NOTE: This is very much work in progress.
 
