@@ -1,16 +1,26 @@
 resource "upcloud_server" "this" {
-  count    = var.cluster_size
+  count    = var.consul_cluster_size
   zone     = var.zone
-  hostname = "${var.cluster_name}-${count.index}.${var.domain}"
+  hostname = "${var.consul_cluster_name}-${count.index}.${var.domain}"
 
   cpu = var.cpu
   mem = var.mem
 
   dynamic "network_interface" {
-      for_each = var.network_interface
-      content {
-          type = network_interface.value["type"]   
-      }
+    for_each = var.network_interface
+    content {
+      type = network_interface.value["type"]
+    }
+  }
+
+  dynamic "storage_devices" {
+    for_each = var.storage_devices
+    content {
+      size    = storage_devices.value["size"]
+      action  = storage_devices.value["action"]
+      tier    = storage_devices.value["tier"]
+      storage = storage_devices.value["storage"]
+    }
   }
 
   login {
@@ -20,14 +30,7 @@ resource "upcloud_server" "this" {
     password_delivery = var.login_password_delivery
   }
 
-  storage_devices {
-    size    = var.storage_device_size
-    action  = "clone"
-    tier    = var.storage_device_tier
-    storage = var.storage_device_src
-  }
-
-  user_data =<<EOF
+  user_data = <<EOF
 #!/bin/bash
 
 export DEBIAN_FRONTEND="noninteractive"
@@ -53,12 +56,13 @@ apt-get update && apt-get install -y -q \
 
 docker run -dit \
     --name=consul-${count.index} \
-    --net=host -e 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}' \
+    --net=host \
+    -e CONSUL_LOCAL_CONFIG='${var.consul_config}' \
     ${var.consul_image} \
     agent \
     -retry-join="provider=upcloud username=\"${var.upcloud_api_username}\" password=\"${var.upcloud_api_password}\" zone=\"${var.zone}\" tag=\"${var.consul_tag_name}\" address_access=utility address_family=IPv4" \
     -server \
-    -bootstrap-expect 3 \
+    -bootstrap-expect ${var.consul_cluster_bootstrap_expect} \
     -bind "{{ GetInterfaceIP \"eth1\" }}"
 EOF
 }
